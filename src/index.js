@@ -12,6 +12,7 @@ client.on('ready', () => {
 const youtubeRegex = /^(https?\:\/\/)?((www\.)?youtube\.com|youtu\.?be)\/.+$/;
 
 let currentVoiceConnection;
+let currentDispatcher;
 
 client.on('message', async message => {
   // Voice only works in guilds, if the message does not come from a guild,
@@ -23,13 +24,20 @@ client.on('message', async message => {
     if (message.member.voice.channel) {
       currentVoiceConnection = await message.member.voice.channel.join();
     } else {
-    	console.log('You need to join a voice channel first!')
+      console.log('You need to join a voice channel first!')
       message.reply('You need to join a voice channel first!');
     }
   }
   if (currentVoiceConnection) {
-  	if (message.content.match(youtubeRegex)) {
-  		const dispatcher = currentVoiceConnection.play(ytdl(message.content, { filter: 'audioonly' }));
-  	}
+    if (message.content.match(youtubeRegex)) {
+      currentDispatcher = currentVoiceConnection.play(ytdl(message.content, {
+        filter: 'audioonly',
+        volume: 0.5,
+      }));
+      currentDispatcher.setVolume(0.5);
+    }
+    if (currentDispatcher && message.content === '/stop') {
+      currentDispatcher.destroy();
+    }
   }
 });
