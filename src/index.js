@@ -60,7 +60,7 @@ client.on('message', async message => {
         currentDispatcher.destroy();
       }
       if(message.content === '/next') {
-        if (queue.length() > 1) {
+        if (queue.length() > 0) {
           console.log('playing next music')
           currentTask.callback();
         } else {
