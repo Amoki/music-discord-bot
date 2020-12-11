@@ -62,6 +62,7 @@ client.on('message', async message => {
       if(message.content === '/next') {
         if (queue.length() > 0) {
           console.log('playing next music')
+          currentDispatcher.destroy();
           currentTask.callback();
         } else {
           message.reply("il n'y a pas de musiques après, déso");
