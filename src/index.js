@@ -33,9 +33,7 @@ const queue = fastq(function(task, callback) {
       }
       case "file": {
         console.log(`Playing file`);
-        currentDispatcher = currentVoiceConnection.play(task.filePath, {
-          volume: 0.5,
-        });
+        currentDispatcher = currentVoiceConnection.play(task.filePath);
         break;
       }
     }
