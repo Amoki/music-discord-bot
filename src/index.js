@@ -2,7 +2,9 @@ const config = require('../config');
 const Discord = require('discord.js');
 const client = new Discord.Client();
 const ytdl = require('ytdl-core');
-const fastq = require('fastq')
+const fastq = require('fastq');
+const path = require('path');
+
 
 client.login(config.token);
 
@@ -17,14 +19,26 @@ let currentDispatcher;
 let currentTask;
 
 const queue = fastq(function(task, callback) {
-  console.log(`Playing ${task.url}`)
   currentTask = task;
   currentTask.callback = callback;
   if (currentVoiceConnection) {
-    currentDispatcher = currentVoiceConnection.play(ytdl(task.url, {
-      filter: 'audioonly',
-      volume: 0.5,
-    }));
+    switch (task.service) {
+      case "youtube": {
+        console.log(`Playing ${task.url}`);
+        currentDispatcher = currentVoiceConnection.play(ytdl(task.url, {
+          filter: 'audioonly',
+          volume: 0.5,
+        }));
+        break;
+      }
+      case "file": {
+        console.log(`Playing file`);
+        currentDispatcher = currentVoiceConnection.play(task.filePath, {
+          volume: 0.5,
+        });
+        break;
+      }
+    }
     currentDispatcher.on('finish', callback);
   }
 }, 1);
@@ -48,20 +62,24 @@ client.on('message', async message => {
     }
   }
   if (currentVoiceConnection) {
+    if (message.content === '/bimdata') {
+      console.log('Queueing BIMData music!');
+      queue.push({filePath: path.join(__dirname, '../files/BIMDATA.mp3'), service: "file"});
+    }
     if (message.content.match(youtubeRegex)) {
       console.log(`Queueing ${message.content}`)
-      queue.push({url: message.content});
+      queue.push({url: message.content, service: "youtube"});
     }
     if (currentDispatcher) {
       if(message.content === '/stop') {
-        console.log('Stopping music')
+        console.log('Stopping music');
         queue.kill();
         currentTask.callback();
         currentDispatcher.destroy();
       }
       if(message.content === '/next') {
         if (queue.length() > 0) {
-          console.log('playing next music')
+          console.log('playing next music');
           currentDispatcher.destroy();
           currentTask.callback();
         } else {
